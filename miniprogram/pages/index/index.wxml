@@ -1,0 +1,217 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部导航栏 -->
+  <view class="nav-bar">
+    <text class="nav-title">城市交通需求分析系统</text>
+  </view>
+
+  <!-- 数据概览卡片区域 -->
+  <view class="overview-section">
+    <view class="section-title">
+      <text class="title-text">数据概览</text>
+      <text class="subtitle-text">2021年5月深圳市共享单车需求分析</text>
+    </view>
+    
+    <view class="stats-grid">
+      <!-- 总站点数 -->
+      <view class="stat-card">
+        <view class="stat-icon">
+          <image src="../../images/station-icon.png" mode="aspectFit"></image>
+        </view>
+        <view class="stat-content">
+          <text class="stat-value">{{overviewData.totalStations}}</text>
+          <text class="stat-label">总站点数</text>
+        </view>
+      </view>
+
+      <!-- 数据天数 -->
+      <view class="stat-card">
+        <view class="stat-icon">
+          <image src="../../images/calendar-icon.png" mode="aspectFit"></image>
+        </view>
+        <view class="stat-content">
+          <text class="stat-value">{{overviewData.dataDays}}</text>
+          <text class="stat-label">数据天数</text>
+        </view>
+      </view>
+
+      <!-- 总需求量 -->
+      <view class="stat-card">
+        <view class="stat-icon">
+          <image src="../../images/demand-icon.png" mode="aspectFit"></image>
+        </view>
+        <view class="stat-content">
+          <text class="stat-value">{{overviewData.totalDemandDisplay}}</text>
+          <text class="stat-label">总需求量</text>
+        </view>
+      </view>
+
+      <!-- 平均日需求 -->
+      <view class="stat-card">
+        <view class="stat-icon">
+          <image src="../../images/average-icon.png" mode="aspectFit"></image>
+        </view>
+        <view class="stat-content">
+          <text class="stat-value">{{overviewData.avgDailyDemandDisplay}}</text>
+          <text class="stat-label">平均日需求</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 地图展示区域 -->
+  <view class="map-section">
+    <view class="section-title">
+      <text class="title-text">站点分布地图</text>
+      <view class="map-legend">
+        <view class="legend-item">
+          <view class="legend-color low"></view>
+          <text>低需求</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-color medium"></view>
+          <text>中需求</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-color high"></view>
+          <text>高需求</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-color very-high"></view>
+          <text>超高需求</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 腾讯地图组件 -->
+    <map 
+      id="stationMap" 
+      class="station-map"
+      latitude="{{mapCenter.latitude}}"
+      longitude="{{mapCenter.longitude}}"
+      scale="{{mapScale}}"
+      markers="{{markers}}"
+      show-location="{{true}}"
+      bindmarkertap="onMarkerTap"
+      bindregionchange="onRegionChange"
+    >
+      <!-- 地图控件 -->
+      <cover-view class="map-controls">
+        <cover-view class="control-btn" bindtap="resetMapCenter">
+          <cover-image src="../../images/location-icon.png" class="control-icon"></cover-image>
+        </cover-view>
+      </cover-view>
+    </map>
+
+    <!-- 站点信息弹窗 -->
+    <view class="station-info-popup" wx:if="{{showStationInfo}}">
+      <view class="popup-mask" bindtap="closeStationInfo"></view>
+      <view class="popup-content">
+        <view class="popup-header">
+          <text class="station-name">{{selectedStation.name}}</text>
+          <view class="close-btn" bindtap="closeStationInfo">
+            <text>×</text>
+          </view>
+        </view>
+        <view class="popup-body">
+          <view class="info-row">
+            <text class="info-label">站点ID：</text>
+            <text class="info-value">{{selectedStation.stationId}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">位置：</text>
+            <text class="info-value">{{selectedStation.address}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">总需求量：</text>
+            <text class="info-value highlight">{{selectedStation.totalDemand}} 次</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">平均需求：</text>
+            <text class="info-value">{{selectedStation.avgDemand}} 次/小时</text>
+          </view>
+          <view class="info-row">
+            <text class="info-label">需求等级：</text>
+            <text class="info-value demand-level-{{selectedStation.demandLevel}}">
+              {{selectedStation.demandLevelText}}
+            </text>
+          </view>
+        </view>
+        <view class="popup-footer">
+          <button class="detail-btn" bindtap="goToStationDetail">查看详情</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 快捷入口区域 -->
+  <view class="quick-access-section">
+    <view class="section-title">
+      <text class="title-text">快捷功能</text>
+    </view>
+
+    <view class="quick-grid">
+      <!-- 热门站点 -->
+      <view class="quick-card" bindtap="goToHotStations">
+        <view class="quick-icon hot">
+          <text class="icon-text">🔥</text>
+        </view>
+        <text class="quick-title">热门站点</text>
+        <text class="quick-subtitle">Top 10排行榜</text>
+      </view>
+
+      <!-- 数据分析 -->
+      <view class="quick-card" bindtap="goToAnalysis">
+        <view class="quick-icon analysis">
+          <text class="icon-text">📊</text>
+        </view>
+        <text class="quick-title">数据分析</text>
+        <text class="quick-subtitle">时空分析报告</text>
+      </view>
+
+      <!-- 我的收藏 -->
+      <view class="quick-card" bindtap="goToFavorites">
+        <view class="quick-icon favorites">
+          <text class="icon-text">⭐</text>
+        </view>
+        <text class="quick-title">我的收藏</text>
+        <text class="quick-subtitle">常用站点</text>
+      </view>
+
+      <!-- 趋势报告 -->
+      <view class="quick-card" bindtap="goToTrends">
+        <view class="quick-icon trends">
+          <text class="icon-text">📈</text>
+        </view>
+        <text class="quick-title">趋势报告</text>
+        <text class="quick-subtitle">需求趋势预测</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近查看 -->
+  <view class="recent-section" wx:if="{{recentStations.length > 0}}">
+    <view class="section-title">
+      <text class="title-text">最近查看</text>
+      <text class="more-btn" bindtap="clearRecent">清空</text>
+    </view>
+
+    <scroll-view class="recent-scroll" scroll-x="true">
+      <view class="recent-item" wx:for="{{recentStations}}" wx:key="stationId" bindtap="goToStationDetail" data-station-id="{{item.stationId}}">
+        <view class="recent-icon" style="background-color: {{item.color}};">
+          <text>{{item.stationId}}</text>
+        </view>
+        <text class="recent-name">{{item.name}}</text>
+        <text class="recent-time">{{item.viewTime}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+</view>
