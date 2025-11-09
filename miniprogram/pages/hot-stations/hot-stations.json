@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "热门站点Top10",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f5f7fa"
+}

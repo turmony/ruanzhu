@@ -1,7 +1,9 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/example/index"
+    "pages/example/index",
+    "pages/hot-stations/hot-stations",
+    "pages/daily-insight/daily-insight"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",

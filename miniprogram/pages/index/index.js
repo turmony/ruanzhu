@@ -1,11 +1,8 @@
 // pages/index/index.js
+// 使用分页查询解决20条限制问题
 
 Page({
-  /**
-   * 页面的初始数据
-   */
   data: {
-    // 概览数据
     overviewData: {
       totalStations: 0,
       dataDays: 31,
@@ -14,50 +11,31 @@ Page({
       avgDailyDemand: 0,
       avgDailyDemandDisplay: '0'
     },
-
-    // 地图配置
     mapCenter: {
-      latitude: 22.5431, // 深圳市中心纬度
-      longitude: 114.0579 // 深圳市中心经度
+      latitude: 22.5431,
+      longitude: 114.0579
     },
-    mapScale: 11,
+    mapScale: 10,
     markers: [],
-
-    // 站点信息弹窗
     showStationInfo: false,
     selectedStation: null,
-
-    // 最近查看
     recentStations: [],
-
-    // 加载状态
     loading: false
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
   onLoad(options) {
     console.log('首页加载');
     this.initPage();
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
   onShow() {
-    // 每次显示页面时刷新最近查看
     this.loadRecentStations();
   },
 
-  /**
-   * 初始化页面
-   */
   async initPage() {
     this.setData({ loading: true });
 
     try {
-      // 并行加载数据
       await Promise.all([
         this.loadOverviewData(),
         this.loadStationList()
@@ -73,17 +51,12 @@ Page({
     }
   },
 
-  /**
-   * 加载概览数据
-   */
   async loadOverviewData() {
     try {
       const db = wx.cloud.database();
       
-      // 获取站点总数
       const stationsCount = await db.collection('stations').count();
       
-      // 获取总需求量（从日统计表汇总）
       const demandResult = await db.collection('daily_statistics')
         .aggregate()
         .group({
@@ -109,31 +82,79 @@ Page({
     }
   },
 
-  /**
-   * 加载站点列表并生成地图标记
-   */
   async loadStationList() {
     try {
       const db = wx.cloud.database();
       
-      // 获取所有站点信息
-      const result = await db.collection('stations')
-        .field({
-          stationId: true,
-          name: true,
-          latitude: true,
-          longitude: true,
-          totalDemand: true,
-          avgDemand: true,
-          demandLevel: true,
-          address: true
-        })
-        .get();
+      console.log('开始分页查询站点数据...');
+      
+      // ⭐ 关键修改：使用分页查询获取所有数据
+      // 由于环境限制，单次只能获取20条，所以分3次查询
+      const batchSize = 20;
+      const queries = [];
+      
+      // 计算需要查询几次（假设最多100个站点）
+      for (let i = 0; i < 5; i++) {
+        queries.push(
+          db.collection('stations')
+            .limit(batchSize)
+            .skip(i * batchSize)
+            .field({
+              stationId: true,
+              name: true,
+              latitude: true,
+              longitude: true,
+              totalDemand: true,
+              avgDemand: true,
+              demandLevel: true,
+              address: true
+            })
+            .get()
+        );
+      }
+      
+      // 并行执行所有查询
+      const results = await Promise.all(queries);
+      
+      // 合并所有结果
+      let stations = [];
+      results.forEach(result => {
+        if (result.data && result.data.length > 0) {
+          stations = stations.concat(result.data);
+        }
+      });
+      
+      console.log(`✅ 分页查询完成，共获取到 ${stations.length} 个站点`);
 
-      const stations = result.data;
+      if (stations.length === 0) {
+        console.warn('⚠️ 未获取到任何站点数据');
+        return;
+      }
 
-      // 生成地图标记点
-      const markers = stations.map(station => {
+      // 计算需求等级
+      const stationsWithLevel = this.calculateDemandLevels(stations);
+
+      // 统计等级分布
+      const levelCount = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0
+      };
+
+      stationsWithLevel.forEach(s => {
+        levelCount[s.demandLevel] = (levelCount[s.demandLevel] || 0) + 1;
+      });
+
+      console.log('\n需求等级分布:');
+      console.log(`🟢 等级1 (低需求): ${levelCount[1]} 个`);
+      console.log(`🟡 等级2 (中需求): ${levelCount[2]} 个`);
+      console.log(`🟠 等级3 (高需求): ${levelCount[3]} 个`);
+      console.log(`🔴 等级4 (超高需求): ${levelCount[4]} 个`);
+      console.log(`📊 总计: ${stationsWithLevel.length} 个标记\n`);
+
+      // 生成地图标记
+      const markers = stationsWithLevel.map(station => {
         return {
           id: station.stationId,
           latitude: station.latitude,
@@ -157,8 +178,10 @@ Page({
         markers: markers
       });
 
-      // 保存站点数据到页面实例，供后续使用
-      this.stationsData = stations;
+      console.log(`✅ 生成 ${markers.length} 个地图标记`);
+
+      // 保存站点数据
+      this.stationsData = stationsWithLevel;
 
     } catch (error) {
       console.error('加载站点列表失败:', error);
@@ -166,22 +189,48 @@ Page({
     }
   },
 
-  /**
-   * 根据需求等级获取标记图标
-   */
+  calculateDemandLevels(stations) {
+    const demands = stations.map(s => s.totalDemand || 0).sort((a, b) => a - b);
+    const len = demands.length;
+
+    const q1 = demands[Math.floor(len * 0.25)];
+    const q2 = demands[Math.floor(len * 0.5)];
+    const q3 = demands[Math.floor(len * 0.75)];
+
+    console.log(`四分位数: Q1=${q1}, Q2=${q2}, Q3=${q3}`);
+
+    return stations.map(station => {
+      const demand = station.totalDemand || 0;
+      let level;
+
+      if (demand <= q1) {
+        level = 1;
+      } else if (demand <= q2) {
+        level = 2;
+      } else if (demand <= q3) {
+        level = 3;
+      } else {
+        level = 4;
+      }
+
+      return {
+        ...station,
+        demandLevel: level
+      };
+    });
+  },
+
   getMarkerIcon(demandLevel) {
     const iconMap = {
-      1: '/images/marker-low.png',      // 蓝色 - 低需求
-      2: '/images/marker-medium.png',   // 绿色 - 中需求
-      3: '/images/marker-high.png',     // 黄色 - 高需求
-      4: '/images/marker-very-high.png' // 红色 - 超高需求
+      1: '/images/marker-low.png',
+      2: '/images/marker-medium.png',
+      3: '/images/marker-high.png',
+      4: '/images/marker-very-high.png'
     };
+    
     return iconMap[demandLevel] || iconMap[2];
   },
 
-  /**
-   * 地图标记点击事件
-   */
   onMarkerTap(e) {
     const markerId = e.detail.markerId;
     const station = this.stationsData.find(s => s.stationId === markerId);
@@ -202,97 +251,108 @@ Page({
         }
       });
 
-      // 记录到最近查看
       this.addToRecent(station);
     }
   },
 
-  /**
-   * 关闭站点信息弹窗
-   */
   closeStationInfo() {
     this.setData({
       showStationInfo: false
     });
   },
 
-  /**
-   * 地图区域变化事件
-   */
   onRegionChange(e) {
-    // 可以在这里处理地图缩放、移动等事件
     if (e.type === 'end') {
-      console.log('地图区域变化结束', e.detail);
+      console.log('地图区域变化', e.detail);
     }
   },
 
-  /**
-   * 重置地图中心
-   */
   resetMapCenter() {
     this.setData({
       mapCenter: {
         latitude: 22.5431,
         longitude: 114.0579
       },
-      mapScale: 11
+      mapScale: 10
     });
   },
 
-  /**
-   * 前往站点详情页
-   */
-  goToStationDetail() {
-    const stationId = this.data.selectedStation.stationId;
-    wx.navigateTo({
-      url: `/pages/station-detail/station-detail?stationId=${stationId}`
-    });
+  goToStationDetail(e) {
+    let stationId;
+    if (e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.stationId) {
+      stationId = e.currentTarget.dataset.stationId;
+    } else if (this.data.selectedStation) {
+      stationId = this.data.selectedStation.stationId;
+    }
+
+    if (stationId) {
+      wx.navigateTo({
+        url: `/pages/station-detail/station-detail?stationId=${stationId}`,
+        fail: () => {
+          wx.showToast({
+            title: '页面开发中',
+            icon: 'none'
+          });
+        }
+      });
+    }
   },
 
-  /**
-   * 前往热门站点页面
-   */
   goToHotStations() {
     wx.navigateTo({
       url: '/pages/hot-stations/hot-stations'
     });
   },
 
-  /**
-   * 前往数据分析页面
-   */
+  goToDailyInsight() {
+    wx.navigateTo({
+      url: '/pages/daily-insight/daily-insight'
+    });
+  },
+
   goToAnalysis() {
     wx.navigateTo({
-      url: '/pages/analysis/analysis'
+      url: '/pages/analysis/analysis',
+      fail: () => {
+        wx.showModal({
+          title: '功能提示',
+          content: '时空分析功能开发中，敬请期待！',
+          showCancel: false
+        });
+      }
     });
   },
 
-  /**
-   * 前往我的收藏页面
-   */
   goToFavorites() {
     wx.navigateTo({
-      url: '/pages/favorites/favorites'
+      url: '/pages/favorites/favorites',
+      fail: () => {
+        wx.showModal({
+          title: '功能提示',
+          content: '我的收藏功能开发中，敬请期待！',
+          showCancel: false
+        });
+      }
     });
   },
 
-  /**
-   * 前往趋势报告页面
-   */
   goToTrends() {
     wx.navigateTo({
-      url: '/pages/trends/trends'
+      url: '/pages/trends/trends',
+      fail: () => {
+        wx.showModal({
+          title: '功能提示',
+          content: '趋势报告功能开发中，敬请期待！',
+          showCancel: false
+        });
+      }
     });
   },
 
-  /**
-   * 加载最近查看记录
-   */
   loadRecentStations() {
     try {
       const recent = wx.getStorageSync('recentStations') || [];
       
-      // 只显示最近5条
       const displayRecent = recent.slice(0, 5).map(item => ({
         ...item,
         color: this.getRandomColor()
@@ -306,24 +366,18 @@ Page({
     }
   },
 
-  /**
-   * 添加到最近查看
-   */
   addToRecent(station) {
     try {
       let recent = wx.getStorageSync('recentStations') || [];
 
-      // 移除已存在的同一站点
       recent = recent.filter(item => item.stationId !== station.stationId);
 
-      // 添加到最前面
       recent.unshift({
         stationId: station.stationId,
         name: station.name,
         viewTime: this.formatTime(new Date())
       });
 
-      // 只保留最近20条
       recent = recent.slice(0, 20);
 
       wx.setStorageSync('recentStations', recent);
@@ -333,9 +387,6 @@ Page({
     }
   },
 
-  /**
-   * 清空最近查看
-   */
   clearRecent() {
     wx.showModal({
       title: '提示',
@@ -355,9 +406,6 @@ Page({
     });
   },
 
-  /**
-   * 格式化数字（千分位）
-   */
   formatNumber(num) {
     if (num >= 10000) {
       return (num / 10000).toFixed(1) + '万';
@@ -365,11 +413,7 @@ Page({
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
 
-  /**
-   * 格式化时间
-   */
   formatTime(date) {
-    const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const hour = date.getHours();
@@ -380,9 +424,6 @@ Page({
     return `${month}-${day} ${formatNumber(hour)}:${formatNumber(minute)}`;
   },
 
-  /**
-   * 获取随机颜色（用于最近查看图标）
-   */
   getRandomColor() {
     const colors = [
       '#667eea',
@@ -396,9 +437,6 @@ Page({
     return colors[Math.floor(Math.random() * colors.length)];
   },
 
-  /**
-   * 下拉刷新
-   */
   onPullDownRefresh() {
     this.initPage().then(() => {
       wx.stopPullDownRefresh();
@@ -409,14 +447,10 @@ Page({
     });
   },
 
-  /**
-   * 页面分享
-   */
   onShareAppMessage() {
     return {
       title: '城市交通需求分析系统',
-      path: '/pages/index/index',
-      imageUrl: '/images/share-cover.png'
+      path: '/pages/index/index'
     };
   }
 });

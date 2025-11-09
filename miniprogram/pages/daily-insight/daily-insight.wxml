@@ -1,0 +1,122 @@
+<!--pages/daily-insight/daily-insight.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="header-title">💡 今日推荐分析</text>
+    <text class="header-subtitle">基于数据的智能发现</text>
+  </view>
+
+  <!-- 日期选择器 -->
+  <view class="date-selector">
+    <text class="date-label">选择日期</text>
+    <picker mode="date" value="{{selectedDate}}" start="2021-05-01" end="2021-05-31" bindchange="onDateChange">
+      <view class="date-picker">
+        <text>{{selectedDateDisplay}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 关键发现卡片 -->
+  <view class="insights-section">
+    <view class="section-title">
+      <text class="title-icon">🔍</text>
+      <text class="title-text">关键发现</text>
+    </view>
+
+    <!-- 发现卡片列表 -->
+    <view class="insight-card" wx:for="{{insights}}" wx:key="id">
+      <view class="card-header">
+        <view class="card-icon" style="background: {{item.color}};">
+          <text>{{item.icon}}</text>
+        </view>
+        <view class="card-title-area">
+          <text class="card-title">{{item.title}}</text>
+          <text class="card-category">{{item.category}}</text>
+        </view>
+      </view>
+
+      <view class="card-content">
+        <text class="content-text">{{item.content}}</text>
+      </view>
+
+      <view class="card-data" wx:if="{{item.data}}">
+        <view class="data-row" wx:for="{{item.data}}" wx:key="label" wx:for-item="dataItem">
+          <text class="data-label">{{dataItem.label}}</text>
+          <text class="data-value">{{dataItem.value}}</text>
+        </view>
+      </view>
+
+      <view class="card-action" wx:if="{{item.actionText}}" bindtap="handleInsightAction" data-action="{{item.action}}">
+        <text class="action-text">{{item.actionText}}</text>
+        <text class="action-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 推荐站点 -->
+  <view class="recommend-section" wx:if="{{recommendedStations.length > 0}}">
+    <view class="section-title">
+      <text class="title-icon">⭐</text>
+      <text class="title-text">推荐关注站点</text>
+    </view>
+
+    <view class="station-card" wx:for="{{recommendedStations}}" wx:key="stationId" bindtap="goToStationDetail" data-station-id="{{item.stationId}}">
+      <view class="station-header">
+        <text class="station-name">{{item.name}}</text>
+        <view class="station-badge" style="background: {{item.badgeColor}};">
+          <text>{{item.badgeText}}</text>
+        </view>
+      </view>
+
+      <view class="station-reason">
+        <text>推荐理由：{{item.reason}}</text>
+      </view>
+
+      <view class="station-stats">
+        <view class="stat-item">
+          <text class="stat-label">需求量</text>
+          <text class="stat-value">{{item.demandDisplay}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">峰值时段</text>
+          <text class="stat-value">{{item.peakHour}}:00</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">增长率</text>
+          <text class="stat-value trend-{{item.trend}}">{{item.trendDisplay}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作建议 -->
+  <view class="suggestions-section" wx:if="{{suggestions.length > 0}}">
+    <view class="section-title">
+      <text class="title-icon">💡</text>
+      <text class="title-text">操作建议</text>
+    </view>
+
+    <view class="suggestion-item" wx:for="{{suggestions}}" wx:key="id">
+      <view class="suggestion-icon">
+        <text>{{item.priority}}</text>
+      </view>
+      <view class="suggestion-content">
+        <text class="suggestion-text">{{item.text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer-tip">
+    <text class="tip-text">💡 数据每日更新，建议定期查看</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">正在分析...</text>
+    </view>
+  </view>
+</view>

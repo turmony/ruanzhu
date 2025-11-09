@@ -1,0 +1,87 @@
+<!--pages/hot-stations/hot-stations.wxml-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="header-title">🔥 热门站点 Top 10</text>
+    <text class="header-subtitle">基于总需求量排名</text>
+  </view>
+
+  <!-- 统计概览 -->
+  <view class="stats-section">
+    <view class="stat-item">
+      <text class="stat-value">{{topStations.length}}</text>
+      <text class="stat-label">热门站点</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{totalDemand}}</text>
+      <text class="stat-label">总需求量</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{avgDemand}}</text>
+      <text class="stat-label">平均需求</text>
+    </view>
+  </view>
+
+  <!-- 排名列表 -->
+  <view class="ranking-section">
+    <view class="rank-card" wx:for="{{topStations}}" wx:key="stationId" bindtap="goToStationDetail" data-station-id="{{item.stationId}}">
+      <!-- 排名徽章 -->
+      <view class="rank-badge rank-{{item.rank <= 3 ? item.rank : 'other'}}">
+        <text class="rank-number">{{item.rank}}</text>
+      </view>
+
+      <!-- 站点信息 -->
+      <view class="station-info">
+        <view class="info-top">
+          <text class="station-name">{{item.name}}</text>
+          <view class="demand-level level-{{item.demandLevel}}">
+            <text>{{item.demandLevelText}}</text>
+          </view>
+        </view>
+        
+        <view class="info-middle">
+          <text class="station-id">ID: {{item.stationId}}</text>
+          <text class="station-address">{{item.address}}</text>
+        </view>
+
+        <view class="info-bottom">
+          <view class="data-item">
+            <text class="data-label">总需求</text>
+            <text class="data-value">{{item.totalDemandDisplay}}</text>
+          </view>
+          <view class="data-item">
+            <text class="data-label">平均需求</text>
+            <text class="data-value">{{item.avgDemand}}/时</text>
+          </view>
+          <view class="data-item">
+            <text class="data-label">峰值时段</text>
+            <text class="data-value">{{item.peakHour}}:00</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 进度条 -->
+      <view class="demand-bar">
+        <view class="bar-fill" style="width: {{item.demandPercent}}%;"></view>
+      </view>
+
+      <!-- 箭头图标 -->
+      <view class="arrow-icon">
+        <text>›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer-tip">
+    <text class="tip-text">💡 点击卡片查看站点详情</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+</view>

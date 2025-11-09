@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "今日推荐分析",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f5f7fa"
+}
