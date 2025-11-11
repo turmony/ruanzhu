@@ -52,11 +52,6 @@
         </view>
       </picker>
     </view>
-    <view class="quick-select">
-      <view class="quick-btn {{quickSelect === 'week' ? 'active' : ''}}" bindtap="selectWeek">本周</view>
-      <view class="quick-btn {{quickSelect === 'lastWeek' ? 'active' : ''}}" bindtap="selectLastWeek">上周</view>
-      <view class="quick-btn {{quickSelect === 'month' ? 'active' : ''}}" bindtap="selectMonth">整月</view>
-    </view>
   </view>
 
   <!-- Tab切换 -->
@@ -73,7 +68,7 @@
   </view>
 
   <!-- 内容区域 -->
-  <view class="content-area">
+  <view class="content-area" style="width: 100%;">
     <!-- 趋势图标签页 -->
     <view class="tab-content" wx:if="{{currentTab === 'chart'}}">
       <!-- 图表类型选择 - 关键：改用view而不是button -->
@@ -91,7 +86,14 @@
 
       <!-- ECharts图表容器 -->
       <view class="chart-container">
-        <ec-canvas id="demand-chart" canvas-id="demand-chart" ec="{{ ec }}"></ec-canvas>
+        <ec-canvas 
+          id="demand-chart" 
+          class="ec-canvas" 
+          canvas-id="demand-chart" 
+          ec="{{ ec }}"
+          force-use-old-canvas="{{false}}"
+          disable-scroll="{{false}}"
+        ></ec-canvas>
       </view>
 
       <!-- 图表说明 -->

@@ -18,7 +18,6 @@ Page({
     // 日期选择
     startDate: '2021-05-01',
     endDate: '2021-05-07',
-    quickSelect: 'week',
     
     // 当前Tab
     currentTab: 'chart',
@@ -248,16 +247,41 @@ Page({
     }
   },
 
-  // 初始化图表
+  // 初始化图表 - 修复宽度问题
   initChart(canvas, width, height, dpr) {
+    console.log('=== 图表初始化 ===');
+    console.log('传入 width:', width, 'height:', height, 'dpr:', dpr);
+    
+    // 使用系统信息计算真实容器宽度
+    const systemInfo = wx.getSystemInfoSync();
+    const screenWidth = systemInfo.windowWidth;
+    const rpxToPx = screenWidth / 750;
+    const pageHorizontalPadding = 40; // 页面左右padding总和 (20rpx * 2)
+    const containerWidth = screenWidth - (pageHorizontalPadding * rpxToPx);
+    
+    console.log('屏幕宽度:', screenWidth);
+    console.log('计算容器宽度:', containerWidth);
+    
+    // 使用计算的宽度初始化图表
     const chart = echarts.init(canvas, null, {
-      width: width,
+      width: containerWidth,
       height: height,
       devicePixelRatio: dpr
     });
     
     canvas.setChart(chart);
     this.chart = chart;
+    
+    // 延迟再调整一次，确保正确
+    setTimeout(() => {
+      if (this.chart) {
+        this.chart.resize({
+          width: containerWidth,
+          height: height
+        });
+        console.log('图表resize完成');
+      }
+    }, 100);
     
     return chart;
   },
@@ -329,10 +353,10 @@ Page({
       },
       grid: {
         top: 35,
-        left: 70,
-        right: 15,
+        left: 50,
+        right: 20,
         bottom: 50,
-        containLabel: false
+        containLabel: true
       },
       xAxis: {
         type: 'category',
@@ -459,10 +483,10 @@ Page({
       },
       grid: {
         top: 35,
-        left: 80,
-        right: 15,
+        left: 50,
+        right: 20,
         bottom: 85,
-        containLabel: false
+        containLabel: true
       },
       xAxis: {
         type: 'category',
@@ -597,44 +621,14 @@ Page({
   // 日期选择
   onStartDateChange(e) {
     this.setData({
-      startDate: e.detail.value,
-      quickSelect: ''
+      startDate: e.detail.value
     });
     this.loadDemandData();
   },
 
   onEndDateChange(e) {
     this.setData({
-      endDate: e.detail.value,
-      quickSelect: ''
-    });
-    this.loadDemandData();
-  },
-
-  // 快捷日期选择
-  selectWeek() {
-    this.setData({
-      startDate: '2021-05-01',
-      endDate: '2021-05-07',
-      quickSelect: 'week'
-    });
-    this.loadDemandData();
-  },
-
-  selectLastWeek() {
-    this.setData({
-      startDate: '2021-05-08',
-      endDate: '2021-05-14',
-      quickSelect: 'lastWeek'
-    });
-    this.loadDemandData();
-  },
-
-  selectMonth() {
-    this.setData({
-      startDate: '2021-05-01',
-      endDate: '2021-05-31',
-      quickSelect: 'month'
+      endDate: e.detail.value
     });
     this.loadDemandData();
   },
