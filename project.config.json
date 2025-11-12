@@ -10,6 +10,7 @@
     "minified": true,
     "newFeature": true,
     "coverView": true,
+    "cleanCache": true,  
     "nodeModules": false,
     "autoAudits": false,
     "showShadowRootInWxmlPanel": true,
