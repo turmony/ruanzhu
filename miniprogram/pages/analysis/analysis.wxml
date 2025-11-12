@@ -1,0 +1,252 @@
+<!-- pages/analysis/analysis.wxml -->
+<view class="container">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">{{loadingText}}</text>
+      <view wx:if="{{loadingProgress > 0}}" class="loading-progress">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{loadingProgress}}%"></view>
+        </view>
+        <text class="progress-text">{{loadingProgress}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 主内容区 -->
+  <view wx:else class="main-content">
+    <!-- Tab切换 -->
+    <view class="tab-container">
+      <view class="tab-item {{activeTab === 'time' ? 'active' : ''}}" bindtap="switchTab" data-tab="time">
+        <text class="tab-icon">⏰</text>
+        <text class="tab-text">时间分析</text>
+      </view>
+      <view class="tab-item {{activeTab === 'space' ? 'active' : ''}}" bindtap="switchTab" data-tab="space">
+        <text class="tab-icon">🗺️</text>
+        <text class="tab-text">空间分析</text>
+      </view>
+      <view class="tab-item {{activeTab === 'combined' ? 'active' : ''}}" bindtap="switchTab" data-tab="combined">
+        <text class="tab-icon">🔄</text>
+        <text class="tab-text">联合分析</text>
+      </view>
+    </view>
+
+    <!-- 时间分析页面 -->
+    <scroll-view wx:if="{{activeTab === 'time'}}" class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="analysis-section">
+        <!-- 小时分布 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">📊 全市小时需求分布</text>
+              <text class="card-subtitle">24小时需求变化趋势</text>
+            </view>
+          </view>
+          <view class="chart-wrapper">
+            <ec-canvas id="hourChart" canvas-id="hourChart" ec="{{hourChart}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 星期分布 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">📅 星期需求对比</text>
+              <text class="card-subtitle">一周需求分布特征</text>
+            </view>
+          </view>
+          <view class="chart-wrapper">
+            <ec-canvas id="weekChart" canvas-id="weekChart" ec="{{weekChart}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 日期趋势 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">📈 5月需求趋势</text>
+              <text class="card-subtitle">每日需求量变化</text>
+            </view>
+          </view>
+          <view class="chart-wrapper chart-tall">
+            <ec-canvas id="dateChart" canvas-id="dateChart" ec="{{dateChart}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 工作日vs周末 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">🔄 工作日 vs 周末</text>
+              <text class="card-subtitle">不同类型日期对比</text>
+            </view>
+          </view>
+          <view class="chart-wrapper">
+            <ec-canvas id="weekdayChart" canvas-id="weekdayChart" ec="{{weekdayChart}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 分析结论 -->
+        <view class="insight-card">
+          <view class="insight-header">
+            <text class="insight-icon">💡</text>
+            <text class="insight-title">时间分析洞察</text>
+          </view>
+          <view class="insight-content">
+            <view class="insight-item" wx:for="{{timeInsights}}" wx:key="index">
+              <text class="insight-bullet">•</text>
+              <text class="insight-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 空间分析页面 -->
+    <scroll-view wx:if="{{activeTab === 'space'}}" class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="analysis-section">
+        <!-- 站点需求分布 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">🏆 站点需求排名</text>
+              <text class="card-subtitle">Top 20 站点</text>
+            </view>
+          </view>
+          <view class="chart-wrapper chart-tall">
+            <ec-canvas id="stationRankChart" canvas-id="stationRankChart" ec="{{stationRankChart}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 需求分布直方图 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">📊 需求分布特征</text>
+              <text class="card-subtitle">站点需求量分布</text>
+            </view>
+          </view>
+          <view class="chart-wrapper">
+            <ec-canvas id="distributionChart" canvas-id="distributionChart" ec="{{distributionChart}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 站点聚类 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">🎯 站点需求聚类</text>
+              <text class="card-subtitle">基于需求量的分组</text>
+            </view>
+          </view>
+          <view class="cluster-container">
+            <view class="cluster-item" wx:for="{{clusterGroups}}" wx:key="id">
+              <view class="cluster-header" style="background: {{item.color}}">
+                <text class="cluster-name">{{item.name}}</text>
+                <text class="cluster-count">{{item.count}}个站点</text>
+              </view>
+              <view class="cluster-stats">
+                <view class="stat-item">
+                  <text class="stat-label">平均需求</text>
+                  <text class="stat-value">{{item.avgDemand}}</text>
+                </view>
+                <view class="stat-item">
+                  <text class="stat-label">需求范围</text>
+                  <text class="stat-value">{{item.range}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 空间洞察 -->
+        <view class="insight-card">
+          <view class="insight-header">
+            <text class="insight-icon">💡</text>
+            <text class="insight-title">空间分析洞察</text>
+          </view>
+          <view class="insight-content">
+            <view class="insight-item" wx:for="{{spaceInsights}}" wx:key="index">
+              <text class="insight-bullet">•</text>
+              <text class="insight-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 联合分析页面 -->
+    <scroll-view wx:if="{{activeTab === 'combined'}}" class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="analysis-section">
+        <!-- 日期-小时热力图 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">🔥 日期-小时需求热力图</text>
+              <text class="card-subtitle">31天 × 24小时时空分布</text>
+            </view>
+          </view>
+          <view class="chart-wrapper chart-extra-tall">
+            <ec-canvas id="dateHourHeatmap" canvas-id="dateHourHeatmap" ec="{{dateHourHeatmap}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 站点-小时热力图 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">🔥 站点-小时需求热力图</text>
+              <text class="card-subtitle">Top 30站点 × 24小时分布</text>
+            </view>
+          </view>
+          <view class="chart-wrapper chart-extra-tall">
+            <ec-canvas id="stationHourHeatmap" canvas-id="stationHourHeatmap" ec="{{stationHourHeatmap}}"></ec-canvas>
+          </view>
+        </view>
+
+        <!-- 需求模式识别 -->
+        <view class="chart-card">
+          <view class="card-header">
+            <view class="header-left">
+              <text class="card-title">🎭 需求模式识别</text>
+              <text class="card-subtitle">站点时间特征分类</text>
+            </view>
+          </view>
+          <view class="pattern-container">
+            <view class="pattern-item" wx:for="{{patternGroups}}" wx:key="id">
+              <view class="pattern-header">
+                <text class="pattern-icon">{{item.icon}}</text>
+                <view class="pattern-info">
+                  <text class="pattern-name">{{item.name}}</text>
+                  <text class="pattern-desc">{{item.description}}</text>
+                </view>
+                <text class="pattern-count">{{item.count}}个</text>
+              </view>
+              <view class="pattern-chart-mini">
+                <ec-canvas id="pattern{{index}}" canvas-id="pattern{{index}}" ec="{{item.chart}}"></ec-canvas>
+              </view>
+              <view class="pattern-stations">
+                <text class="station-tag" wx:for="{{item.examples}}" wx:key="*this" wx:for-item="station">{{station}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 联合洞察 -->
+        <view class="insight-card">
+          <view class="insight-header">
+            <text class="insight-icon">💡</text>
+            <text class="insight-title">时空联合洞察</text>
+          </view>
+          <view class="insight-content">
+            <view class="insight-item" wx:for="{{combinedInsights}}" wx:key="index">
+              <text class="insight-bullet">•</text>
+              <text class="insight-text">{{item}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

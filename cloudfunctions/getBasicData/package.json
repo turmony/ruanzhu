@@ -1,0 +1,9 @@
+{
+  "name": "get-basic-data",
+  "version": "1.0.0",
+  "description": "加载基础数据（stations + daily_statistics）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

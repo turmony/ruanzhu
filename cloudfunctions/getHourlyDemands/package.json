@@ -1,0 +1,9 @@
+{
+  "name": "get-hourly-demands",
+  "version": "1.0.0",
+  "description": "分页加载小时需求数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
