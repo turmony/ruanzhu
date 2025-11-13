@@ -1,0 +1,332 @@
+<!-- miniprogram/pages/station-ranking/station-ranking.wxml -->
+<view class="container">
+  <!-- 模式切换 -->
+  <view class="mode-tabs">
+    <view 
+      class="mode-tab {{currentMode === 'ranking' ? 'active' : ''}}"
+      bindtap="switchMode"
+      data-mode="ranking">
+      <text class="tab-icon">🏆</text>
+      <text class="tab-text">站点排名</text>
+    </view>
+    <view 
+      class="mode-tab {{currentMode === 'compare' ? 'active' : ''}}"
+      bindtap="switchMode"
+      data-mode="compare">
+      <text class="tab-icon">📊</text>
+      <text class="tab-text">站点对比</text>
+    </view>
+  </view>
+
+  <!-- 排名模式 -->
+  <block wx:if="{{currentMode === 'ranking'}}">
+    <!-- 排名类型选择 - 优化布局为两行 -->
+    <view class="ranking-types">
+      <view class="section-title-inline">
+        <text class="title-icon">📋</text>
+        <text class="title-text">选择指标</text>
+      </view>
+      
+      <view class="type-grid">
+        <!-- 第一行：3个选项 -->
+        <view class="type-row">
+          <view 
+            class="type-item {{rankingType === 'total' ? 'active' : ''}}"
+            bindtap="changeRankingType"
+            data-type="total">
+            <text class="type-icon">📈</text>
+            <text class="type-name">总需求</text>
+          </view>
+          <view 
+            class="type-item {{rankingType === 'avg' ? 'active' : ''}}"
+            bindtap="changeRankingType"
+            data-type="avg">
+            <text class="type-icon">📊</text>
+            <text class="type-name">平均需求</text>
+          </view>
+          <view 
+            class="type-item {{rankingType === 'peak' ? 'active' : ''}}"
+            bindtap="changeRankingType"
+            data-type="peak">
+            <text class="type-icon">⚡</text>
+            <text class="type-name">峰值需求</text>
+          </view>
+        </view>
+        
+        <!-- 第二行：2个选项 -->
+        <!-- <view class="type-row">
+          <view 
+            class="type-item {{rankingType === 'growth' ? 'active' : ''}}"
+            bindtap="changeRankingType"
+            data-type="growth">
+            <text class="type-icon">📈</text>
+            <text class="type-name">增长率</text>
+          </view>
+          <view 
+            class="type-item {{rankingType === 'stability' ? 'active' : ''}}"
+            bindtap="changeRankingType"
+            data-type="stability">
+            <text class="type-icon">🎯</text>
+            <text class="type-name">稳定性</text>
+          </view>
+        </view> -->
+      </view>
+    </view>
+
+    <!-- Top 10 排行榜 -->
+    <view class="ranking-section">
+      <view class="section-title">
+        <text class="title-icon">🏆</text>
+        <text class="title-text">Top 10 排行榜</text>
+      </view>
+
+      <view class="ranking-list">
+        <block wx:for="{{showFullList ? rankingList : rankingList.slice(0, 10)}}" wx:key="stationId">
+          <view class="ranking-item" bindtap="viewStationDetail" data-id="{{item.stationId}}">
+            <!-- 排名 -->
+            <view class="rank-badge {{item.rank <= 3 ? 'top-three' : ''}}">
+              <text class="rank-text" wx:if="{{item.rank <= 3}}">{{item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : '🥉'}}</text>
+              <text class="rank-number" wx:else>{{item.rank}}</text>
+            </view>
+
+            <!-- 站点信息 -->
+            <view class="station-info">
+              <view class="station-name">{{item.name}}</view>
+              <view class="station-id">ID: {{item.stationId}}</view>
+            </view>
+
+            <!-- 指标值 -->
+            <view class="metric-value">
+              <block wx:if="{{rankingType === 'total'}}">
+                <text class="value-number">{{item.totalDemandDisplay}}</text>
+                <text class="value-unit">次</text>
+              </block>
+              <block wx:elif="{{rankingType === 'avg'}}">
+                <text class="value-number">{{item.avgDemandDisplay}}</text>
+                <text class="value-unit">次/小时</text>
+              </block>
+              <block wx:elif="{{rankingType === 'peak'}}">
+                <text class="value-number">{{item.maxDemand}}</text>
+                <text class="value-unit">次</text>
+              </block>
+              <block wx:elif="{{rankingType === 'growth'}}">
+                <text class="value-number {{item.growthRate >= 0 ? 'positive' : 'negative'}}">
+                  {{item.growthRateDisplay}}
+                </text>
+              </block>
+              <block wx:else>
+                <text class="value-number">{{item.stabilityDisplay}}</text>
+                <text class="value-unit">分</text>
+              </block>
+            </view>
+
+            <!-- 进度条 -->
+            <view class="progress-bar">
+              <view class="progress-fill" style="width: {{item.progressWidth}}"></view>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <!-- 查看完整榜单按钮 -->
+      <view class="toggle-list-btn" bindtap="toggleFullList" wx:if="{{rankingList.length > 10}}">
+        <text>{{showFullList ? '收起' : '查看完整榜单'}}</text>
+        <text class="arrow {{showFullList ? 'up' : 'down'}}">▼</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- 对比模式 -->
+  <block wx:if="{{currentMode === 'compare'}}">
+    <!-- 站点选择区 -->
+    <view class="compare-section">
+      <view class="section-title">
+        <text class="title-icon">📍</text>
+        <text class="title-text">选择站点</text>
+        <text class="title-subtitle">最多5个</text>
+      </view>
+
+      <view class="selected-stations">
+        <block wx:for="{{selectedStations}}" wx:key="stationId" wx:for-index="idx">
+          <view class="selected-station station-color-{{idx % 5}}">
+            <text class="station-name">{{item.name}}</text>
+            <text class="remove-btn" bindtap="removeStation" data-id="{{item.stationId}}">×</text>
+          </view>
+        </block>
+
+        <view class="add-station-btn" bindtap="openStationPicker" wx:if="{{selectedStations.length < 5}}">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加站点</text>
+        </view>
+      </view>
+
+      <!-- 提示信息 -->
+      <view class="compare-hint" wx:if="{{selectedStations.length < 2}}">
+        <text class="hint-icon">💡</text>
+        <text class="hint-text">请至少选择2个站点进行对比</text>
+      </view>
+    </view>
+
+    <!-- 对比图表 -->
+    <view class="chart-section" style="width: 100%; box-sizing: border-box;" wx:if="{{selectedStations.length >= 2 && compareData && !showStationPicker}}">
+      <view class="section-title">
+        <text class="title-icon">📊</text>
+        <text class="title-text">多维度对比</text>
+      </view>
+
+      <view class="chart-container" style="width: 100%; box-sizing: border-box;">
+        <ec-canvas 
+          id="compare-chart" 
+          canvas-id="compare-chart" 
+          ec="{{ ec }}"
+          style="width: 100%; height: 100%; box-sizing: border-box;"></ec-canvas>
+      </view>
+    </view>
+
+    <!-- 对比表格 -->
+    <view class="compare-table-section" wx:if="{{selectedStations.length >= 2 && compareData && !showStationPicker}}">
+      <view class="section-title">
+        <text class="title-icon">📋</text>
+        <text class="title-text">详细数据对比</text>
+      </view>
+
+      <scroll-view scroll-x class="table-scroll" enable-flex>
+        <view class="compare-table">
+          <!-- 表头 -->
+          <view class="table-header">
+            <view class="table-cell header-cell">指标</view>
+            <block wx:for="{{selectedStations}}" wx:key="stationId" wx:for-index="idx">
+              <view class="table-cell header-cell station-header station-color-{{idx % 5}}">
+                {{item.name}}
+              </view>
+            </block>
+          </view>
+
+          <!-- 数据行 -->
+          <view class="table-body">
+            <!-- 总需求 -->
+            <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">📈</text>
+                <text class="label-text">总需求</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  {{compareData[item.stationId].totalDemandDisplay}}
+                </view>
+              </block>
+            </view>
+
+            <!-- 平均需求 -->
+            <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">📊</text>
+                <text class="label-text">平均需求</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  {{compareData[item.stationId].avgDemandDisplay}}
+                </view>
+              </block>
+            </view>
+
+            <!-- 峰值需求 -->
+            <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">⚡</text>
+                <text class="label-text">峰值需求</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  {{compareData[item.stationId].maxDemand}}
+                </view>
+              </block>
+            </view>
+
+            <!-- 增长率 -->
+            <!-- <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">📈</text>
+                <text class="label-text">增长率</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  <text class="{{compareData[item.stationId].growthRate >= 0 ? 'positive' : 'negative'}}">
+                    {{compareData[item.stationId].growthRateDisplay}}
+                  </text>
+                </view>
+              </block>
+            </view> -->
+
+            <!-- 稳定性 -->
+            <!-- <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">🎯</text>
+                <text class="label-text">稳定性</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  {{compareData[item.stationId].stabilityDisplay}}
+                </view>
+              </block>
+            </view> -->
+
+            <!-- 工作日需求 -->
+            <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">🏢</text>
+                <text class="label-text">工作日</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  {{compareData[item.stationId].weekdayAvgDisplay}}
+                </view>
+              </block>
+            </view>
+
+            <!-- 周末需求 -->
+            <view class="table-row">
+              <view class="table-cell label-cell">
+                <text class="label-icon">🎉</text>
+                <text class="label-text">周末</text>
+              </view>
+              <block wx:for="{{selectedStations}}" wx:key="stationId">
+                <view class="table-cell data-cell">
+                  {{compareData[item.stationId].weekendAvgDisplay}}
+                </view>
+              </block>
+            </view>
+
+            <!-- 变异系数 - 已删除 -->
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </block>
+
+  <!-- 站点选择弹窗 -->
+  <view class="station-picker-modal" wx:if="{{showStationPicker}}">
+    <view class="modal-mask" bindtap="closeStationPicker"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">选择站点</text>
+        <text class="modal-close" bindtap="closeStationPicker">×</text>
+      </view>
+      
+      <scroll-view scroll-y class="station-list">
+        <block wx:for="{{stationList}}" wx:key="stationId">
+          <view 
+            class="station-item {{item.isSelected ? 'selected' : ''}}"
+            bindtap="selectStation"
+            data-id="{{item.stationId}}">
+            <view class="station-item-content">
+              <text class="station-name">{{item.name}}</text>
+              <text class="station-id">ID: {{item.stationId}}</text>
+            </view>
+            <text class="check-icon" wx:if="{{item.isSelected}}">✓</text>
+          </view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+</view>

@@ -360,6 +360,7 @@
   margin-bottom: 20rpx;
 }
 
+/* 原有的图标样式 */
 .quick-icon.hot {
   background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
 }
@@ -378,6 +379,16 @@
 
 .quick-icon.trends {
   background: linear-gradient(135deg, #4bc0c8 0%, #c779d0 100%);
+}
+
+/* ⭐⭐⭐ 新增：站点排名图标样式 */
+.quick-icon.ranking {
+  background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+}
+
+/* ⭐⭐⭐ 新增：站点对比图标样式 */
+.quick-icon.comparison {
+  background: linear-gradient(135deg, #a8e6cf 0%, #3bb78f 100%);
 }
 
 .icon-text {

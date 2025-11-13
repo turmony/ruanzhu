@@ -169,10 +169,19 @@
         <text class="quick-subtitle">智能分析报告</text>
       </view>
 
+      <!-- ⭐ 新增：站点排名 -->
+      <view class="quick-card" bindtap="goToRanking">
+        <view class="quick-icon ranking">
+          <text class="icon-text">🏆</text>
+        </view>
+        <text class="quick-title">站点排名与对比</text>
+        <text class="quick-subtitle">排行榜与多站点对比</text>
+      </view>
+
       <!-- 数据分析 -->
       <view class="quick-card" bindtap="goToAnalysis">
         <view class="quick-icon analysis">
-          <text class="icon-text">📊</text>
+          <text class="icon-text">📈</text>
         </view>
         <text class="quick-title">数据分析</text>
         <text class="quick-subtitle">时空分析报告</text>
@@ -181,7 +190,7 @@
       <!-- 趋势报告 -->
       <view class="quick-card" bindtap="goToTrends">
         <view class="quick-icon trends">
-          <text class="icon-text">📈</text>
+          <text class="icon-text">📉</text>
         </view>
         <text class="quick-title">趋势报告</text>
         <text class="quick-subtitle">需求趋势预测</text>

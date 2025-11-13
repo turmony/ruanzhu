@@ -310,6 +310,20 @@ Page({
     });
   },
 
+  // ⭐⭐⭐ 新增：跳转到站点排名页面（4.4模块）
+  goToRanking() {
+    wx.navigateTo({
+      url: '/pages/station-ranking/station-ranking?mode=ranking',
+      fail: () => {
+        wx.showModal({
+          title: '功能提示',
+          content: '站点排名功能开发中，敬请期待！',
+          showCancel: false
+        });
+      }
+    });
+  },
+
   goToAnalysis() {
     wx.navigateTo({
       url: '/pages/analysis/analysis',
