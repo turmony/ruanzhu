@@ -1,0 +1,168 @@
+<!-- miniprogram/pages/pattern-recognition/pattern-recognition.wxml -->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <view class="header-bg"></view>
+    <view class="header-content">
+      <text class="header-icon">🤖</text>
+      <text class="header-title">智能模式识别</text>
+      <text class="header-subtitle">基于深度学习的需求模式分类系统</text>
+    </view>
+  </view>
+
+  <!-- 识别结果统计 -->
+  <view class="stats-section">
+    <view class="section-header">
+      <view class="header-line"></view>
+      <text class="section-title">识别结果分布</text>
+      <view class="header-line"></view>
+    </view>
+    
+    <view class="pattern-cards">
+      <view 
+        wx:for="{{clusterStats}}" 
+        wx:key="type" 
+        class="pattern-card"
+        data-type="{{item.type}}"
+        bindtap="viewClusterDetail"
+        style="border-left-color: {{item.color}};">
+        <view class="card-header">
+          <view class="card-icon" style="background: linear-gradient(135deg, {{item.color}}dd, {{item.color}});">
+            <text>{{item.icon}}</text>
+          </view>
+          <view class="card-info">
+            <text class="card-name">{{item.name}}</text>
+            <text class="card-count">{{item.count}} 个站点</text>
+            <text class="card-features" wx:if="{{item.features}}">{{item.features}}</text>
+          </view>
+          <view class="card-percent">
+            <text class="percent-value">{{item.widthPercent}}</text>
+          </view>
+        </view>
+        <view class="card-progress">
+          <view 
+            class="progress-fill" 
+            style="width: {{item.widthPercent}}; background: linear-gradient(90deg, {{item.color}}cc, {{item.color}});">
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 平均需求曲线图 -->
+  <view class="chart-section">
+    <view class="section-header">
+      <view class="header-line"></view>
+      <text class="section-title">各模式平均需求曲线</text>
+      <view class="header-line"></view>
+    </view>
+    
+    <view class="chart-card">
+      <view class="chart-container">
+        <ec-canvas 
+          id="pattern-chart" 
+          canvas-id="pattern-chart"
+          ec="{{ ec }}"
+          force-use-old-canvas="true">
+        </ec-canvas>
+      </view>
+    </view>
+  </view>
+
+  <!-- 模式说明 -->
+  <view class="description-section">
+    <view class="section-header">
+      <view class="header-line"></view>
+      <text class="section-title">模式特征说明</text>
+      <view class="header-line"></view>
+    </view>
+    
+    <view class="pattern-description">
+      <view class="desc-item">
+        <view class="desc-icon" style="background-color: #1890ff;">🚇</view>
+        <view class="desc-text">
+          <text class="desc-title">通勤型</text>
+          <text class="desc-detail">早晚双峰明显，工作日特征突出</text>
+        </view>
+      </view>
+      <view class="desc-item">
+        <view class="desc-icon" style="background-color: #52c41a;">🎡</view>
+        <view class="desc-text">
+          <text class="desc-title">休闲型</text>
+          <text class="desc-detail">午后单峰，周末休闲时段活跃</text>
+        </view>
+      </view>
+      <view class="desc-item">
+        <view class="desc-icon" style="background-color: #faad14;">⚖️</view>
+        <view class="desc-text">
+          <text class="desc-title">全天均衡型</text>
+          <text class="desc-detail">需求分布相对平稳，无明显峰值</text>
+        </view>
+      </view>
+      <view class="desc-item">
+        <view class="desc-icon" style="background-color: #722ed1;">🌙</view>
+        <view class="desc-text">
+          <text class="desc-title">夜间活跃型</text>
+          <text class="desc-detail">夜间需求占比高，夜生活场景</text>
+        </view>
+      </view>
+      <view class="desc-item">
+        <view class="desc-icon" style="background-color: #8c8c8c;">📉</view>
+        <view class="desc-text">
+          <text class="desc-title">低频稳定型</text>
+          <text class="desc-detail">需求量低且波动小，平稳运营</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 站点分类详情 -->
+  <view class="stations-section">
+    <view class="section-header">
+      <view class="header-line"></view>
+      <text class="section-title">站点分类详情</text>
+      <view class="header-line"></view>
+    </view>
+
+    <view class="pattern-groups">
+      <view wx:for="{{clusterStats}}" wx:key="type" class="pattern-group">
+        <view wx:if="{{item.count > 0}}" class="group-wrapper">
+          <view class="group-header" style="background: linear-gradient(135deg, {{item.color}}15, {{item.color}}05);">
+            <view class="group-title">
+              <text class="group-icon">{{item.icon}}</text>
+              <text class="group-name">{{item.name}}</text>
+            </view>
+            <view class="group-badge" style="background-color: {{item.color}};">
+              {{item.count}}
+            </view>
+          </view>
+          <view class="stations-grid">
+            <view 
+              wx:for="{{item.stations}}" 
+              wx:for-item="station"
+              wx:key="stationId" 
+              class="station-tag"
+              style="border-color: {{item.color}}; color: {{item.color}};">
+              <text class="station-name">{{station.name}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 算法说明 -->
+  <view class="algorithm-section">
+    <view class="algorithm-card">
+      <view class="algorithm-header">
+        <text class="algorithm-icon">🔬</text>
+        <text class="algorithm-title">识别算法原理</text>
+      </view>
+      <view class="algorithm-content">
+        <text class="algorithm-text">
+本系统采用分层聚类算法进行需求模式识别。首先按总需求量将站点分档，然后在每档内根据时段特征进行细分：优先识别低频稳定型（总需求最低10个）和夜间活跃型（夜间占比最高8个），剩余站点根据早晚高峰、午后峰值等特征分为通勤型、休闲型和全天均衡型。这种分层方法结合了需求量和时段特征，能够更准确地反映站点的运营模式。
+        </text>
+      </view>
+    </view>
+  </view>
+</view>

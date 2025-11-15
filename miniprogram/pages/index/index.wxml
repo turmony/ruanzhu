@@ -192,7 +192,7 @@
         <view class="quick-icon trends">
           <text class="icon-text">📉</text>
         </view>
-        <text class="quick-title">趋势报告</text>
+        <text class="quick-title">模式识别</text>
         <text class="quick-subtitle">需求趋势预测</text>
       </view>
     </view>

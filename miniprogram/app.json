@@ -6,7 +6,8 @@
     "pages/daily-insight/daily-insight",
     "pages/station-detail/station-detail",
     "pages/analysis/analysis",
-    "pages/station-ranking/station-ranking"
+    "pages/station-ranking/station-ranking",
+    "pages/pattern-recognition/pattern-recognition"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",

@@ -352,7 +352,7 @@ Page({
 
   goToTrends() {
     wx.navigateTo({
-      url: '/pages/trends/trends',
+      url: '/pages/pattern-recognition/pattern-recognition',
       fail: () => {
         wx.showModal({
           title: '功能提示',
