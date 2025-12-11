@@ -936,19 +936,22 @@ Page({
       legend: {
         data: this.data.clusterStats.filter(c => c.count > 0).map(c => c.name),
         top: 10,
+        left: 'center',
         textStyle: {
           fontSize: 11,
           color: '#595959'
         },
-        itemWidth: 20,
-        itemHeight: 12
+        itemWidth: 18,
+        itemHeight: 10,
+        itemGap: 10
       },
       grid: {
-        top: 60,
-        left: '15%',
-        right: '8%',
-        bottom: 50,
-        containLabel: false
+        // 增大上边距给图例留出空间
+        top: 120,
+        left: '12%',
+        right: '6%',
+        bottom: 60,
+        containLabel: true
       },
       xAxis: {
         type: 'category',
@@ -974,6 +977,8 @@ Page({
       yAxis: {
         type: 'value',
         name: '平均需求量',
+        // 将 Y 轴整体右移，避免与图例遮挡
+        offset: 16,
         nameTextStyle: {
           fontSize: 12,
           color: '#595959'

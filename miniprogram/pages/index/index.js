@@ -160,8 +160,9 @@ Page({
           latitude: station.latitude,
           longitude: station.longitude,
           iconPath: this.getMarkerIcon(station.demandLevel),
-          width: 40,
-          height: 40,
+          // 调小标记尺寸，避免地图遮挡
+          width: 28,
+          height: 28,
           callout: {
             content: station.name,
             color: '#333333',
