@@ -11,16 +11,7 @@
         <text class="avg-demand">平均需求: {{stationInfo.avgDemand}}次/小时</text>
       </view>
     </view>
-    <view class="action-buttons">
-      <button class="btn-favorite {{isFavorite ? 'active' : ''}}" bindtap="toggleFavorite">
-        <text class="icon">{{isFavorite ? '★' : '☆'}}</text>
-        <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
-      </button>
-      <button class="btn-share" open-type="share">
-        <text class="icon">📤</text>
-        <text>分享</text>
-      </button>
-    </view>
+    <!-- 收藏功能已下线 -->
   </view>
 
   <!-- 站点选择器 -->

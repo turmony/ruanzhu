@@ -22,8 +22,7 @@ Page({
     timeInsights: [],
     spaceInsights: [],
     combinedInsights: [],
-    clusterGroups: [],
-    patternGroups: []
+    clusterGroups: []
   },
 
   onLoad() {
@@ -118,8 +117,8 @@ Page({
         
         // 调用云函数获取云存储文件信息
         const result = await wx.cloud.callFunction({
-          name: 'getHourlyDemands',
-          data: { page }
+          name: 'demandService',
+          data: { action: 'allPaged', page }
         });
 
         if (!result.result.success) {
@@ -192,7 +191,6 @@ Page({
     // 联合分析图表
     this.initDateHourHeatmap();
     this.initStationHourHeatmap();
-    this.initPatternCharts();
   },
 
   /**
@@ -914,260 +912,6 @@ Page({
       }
     });
   },
-
-  /**
-   * 需求模式识别和图表
-   */
-  initPatternCharts() {
-    // 分析每个站点的24小时需求模式
-    const stationPatterns = {};
-    
-    this.stations.forEach(station => {
-      const hourlyData = new Array(24).fill(0);
-      const counts = new Array(24).fill(0);
-      
-      this.hourlyDemands.forEach(item => {
-        if (item.stationId === station.stationId) {
-          hourlyData[item.hour] += item.demand;
-          counts[item.hour]++;
-        }
-      });
-      
-      // 计算平均值
-      const avgHourly = hourlyData.map((sum, i) => counts[i] > 0 ? sum / counts[i] : 0);
-      stationPatterns[station.stationId] = {
-        name: station.name,
-        hourlyAvg: avgHourly,
-        totalDemand: station.totalDemand || 0
-      };
-    });
-
-    // 识别模式类型
-    const patterns = this.identifyPatterns(stationPatterns);
-
-    // 为每个模式生成小型图表
-    const patternGroups = patterns.map((pattern, index) => {
-      return {
-        id: pattern.type,
-        icon: pattern.icon,
-        name: pattern.name,
-        description: pattern.description,
-        count: pattern.stations.length,
-        examples: pattern.stations.slice(0, 5).map(s => s.name),
-        chart: {
-          onInit: (canvas, width, height, dpr) => {
-            const chart = echarts.init(canvas, null, {
-              width: width,
-              height: height,
-              devicePixelRatio: dpr
-            });
-
-            const option = {
-              grid: {
-                left: '10%',
-                right: '5%',
-                top: '10%',
-                bottom: '15%'
-              },
-              xAxis: {
-                type: 'category',
-                data: Array.from({length: 24}, (_, i) => i),
-                axisLabel: {
-                  fontSize: 8,
-                  interval: 3
-                }
-              },
-              yAxis: {
-                type: 'value',
-                show: false
-              },
-              series: [{
-                data: pattern.typicalCurve,
-                type: 'line',
-                smooth: true,
-                lineStyle: {
-                  color: pattern.color,
-                  width: 2
-                },
-                areaStyle: {
-                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: pattern.color + '40' },
-                    { offset: 1, color: pattern.color + '10' }
-                  ])
-                },
-                symbol: 'none'
-              }]
-            };
-
-            chart.setOption(option);
-            return chart;
-          }
-        }
-      };
-    });
-
-    this.setData({ patternGroups });
-  },
-
-  /**
-   * 识别需求模式
-   */
-  identifyPatterns(stationPatterns) {
-    const patterns = [
-      {
-        type: 'commute',
-        name: '通勤型',
-        icon: '🚗',
-        description: '早晚高峰明显',
-        color: '#1890ff',
-        stations: [],
-        typicalCurve: []
-      },
-      {
-        type: 'leisure',
-        name: '休闲型',
-        icon: '🎮',
-        description: '午后单峰',
-        color: '#52c41a',
-        stations: [],
-        typicalCurve: []
-      },
-      {
-        type: 'balanced',
-        name: '全天型',
-        icon: '⚖️',
-        description: '需求均衡',
-        color: '#faad14',
-        stations: [],
-        typicalCurve: []
-      },
-      {
-        type: 'night',
-        name: '夜间型',
-        icon: '🌙',
-        description: '夜间活跃',
-        color: '#722ed1',
-        stations: [],
-        typicalCurve: []
-      },
-      {
-        type: 'low',
-        name: '低频型',
-        icon: '📉',
-        description: '整体需求低',
-        color: '#8c8c8c',
-        stations: [],
-        typicalCurve: []
-      }
-    ];
-
-    // 计算全局统计信息
-    const allTotalDemands = Object.values(stationPatterns).map(s => s.totalDemand);
-    const globalAvgDemand = allTotalDemands.reduce((a, b) => a + b, 0) / allTotalDemands.length;
-    const globalMedianDemand = this.getMedian(allTotalDemands);
-    
-    // 定义低频阈值：使用中位数的30%作为绝对低频标准
-    const lowFreqThreshold = globalMedianDemand * 0.3;
-    
-    console.log('模式识别统计：', {
-      平均需求: Math.round(globalAvgDemand),
-      中位数: Math.round(globalMedianDemand),
-      低频阈值: Math.round(lowFreqThreshold)
-    });
-
-    // 根据特征分类站点
-    Object.entries(stationPatterns).forEach(([id, data]) => {
-      const curve = data.hourlyAvg;
-      const total = data.totalDemand;
-      
-      // 首先判断是否为低频型（基于绝对需求量）
-      if (total < lowFreqThreshold) {
-        patterns[4].stations.push(data);
-        return;
-      }
-      
-      // 计算不同时段的需求特征
-      const morningPeak = Math.max(...curve.slice(7, 10));      // 7-9时
-      const noonPeak = Math.max(...curve.slice(11, 14));        // 11-13时
-      const afternoonPeak = Math.max(...curve.slice(14, 17));   // 14-16时
-      const eveningPeak = Math.max(...curve.slice(17, 20));     // 17-19时
-      const nightPeak = Math.max(...curve.slice(20, 24));       // 20-23时
-      const avgDemand = curve.reduce((a, b) => a + b, 0) / 24;
-      
-      // 计算峰值比率
-      const morningRatio = morningPeak / avgDemand;
-      const eveningRatio = eveningPeak / avgDemand;
-      const afternoonRatio = afternoonPeak / avgDemand;
-      const nightRatio = nightPeak / avgDemand;
-      
-      // 计算需求变异系数（标准差/平均值）
-      const variance = curve.reduce((sum, val) => sum + Math.pow(val - avgDemand, 2), 0) / 24;
-      const stdDev = Math.sqrt(variance);
-      const cv = stdDev / avgDemand; // 变异系数
-      
-      // 分类逻辑（基于多个特征）
-      // 1. 通勤型：早晚双峰明显（比平均高50%以上）且变异系数较高
-      if (morningRatio > 1.5 && eveningRatio > 1.5 && cv > 0.4) {
-        patterns[0].stations.push(data);
-      }
-      // 2. 夜间型：夜间峰值突出（比平均高40%以上）
-      else if (nightRatio > 1.4 && nightPeak > morningPeak && nightPeak > eveningPeak) {
-        patterns[3].stations.push(data);
-      }
-      // 3. 休闲型：午后高峰明显（比早晚峰都高）
-      else if (afternoonRatio > 1.3 && afternoonPeak > morningPeak && afternoonPeak > eveningPeak) {
-        patterns[1].stations.push(data);
-      }
-      // 4. 全天型：需求分布均匀（变异系数较低）
-      else if (cv < 0.35) {
-        patterns[2].stations.push(data);
-      }
-      // 5. 其他情况根据主要峰值分配
-      else {
-        const maxPeak = Math.max(morningPeak, afternoonPeak, eveningPeak, nightPeak);
-        if (maxPeak === morningPeak || maxPeak === eveningPeak) {
-          patterns[0].stations.push(data);
-        } else if (maxPeak === afternoonPeak) {
-          patterns[1].stations.push(data);
-        } else {
-          patterns[2].stations.push(data);
-        }
-      }
-    });
-
-    // 计算每个模式的典型曲线（取平均）
-    patterns.forEach(pattern => {
-      if (pattern.stations.length > 0) {
-        const avgCurve = new Array(24).fill(0);
-        pattern.stations.forEach(station => {
-          station.hourlyAvg.forEach((val, i) => {
-            avgCurve[i] += val;
-          });
-        });
-        pattern.typicalCurve = avgCurve.map(v => v / pattern.stations.length);
-      }
-    });
-
-    // 输出分类结果
-    console.log('模式分类结果：');
-    patterns.forEach(p => {
-      console.log(`${p.name}: ${p.stations.length}个站点`);
-    });
-
-    return patterns;
-  },
-
-  /**
-   * 计算中位数
-   */
-  getMedian(arr) {
-    const sorted = [...arr].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0 
-      ? (sorted[mid - 1] + sorted[mid]) / 2 
-      : sorted[mid];
-  },
-
   /**
    * 找出峰值
    */

@@ -1,7 +1,6 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/example/index",
     "pages/hot-stations/hot-stations",
     "pages/daily-insight/daily-insight",
     "pages/station-detail/station-detail",

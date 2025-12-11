@@ -1,9 +1,10 @@
 {
-  "name": "get-hourly-demands",
+  "name": "station-service",
   "version": "1.0.0",
-  "description": "分页加载小时需求数据",
+  "description": "Station list/info/overview service",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"
   }
 }
+

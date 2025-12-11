@@ -5,7 +5,7 @@ const app = getApp();
 
 const CONFIG = {
   BASIC_DATA_FUNCTION: 'getBasicData',
-  HOURLY_DATA_FUNCTION: 'getHourlyDemands',
+  HOURLY_DATA_FUNCTION: 'demandService',
   DEBUG_MODE: true
 };
 
@@ -125,6 +125,7 @@ Page({
         const hourlyRes = await wx.cloud.callFunction({
           name: CONFIG.HOURLY_DATA_FUNCTION,
           data: {
+            action: 'allPaged',
             startDate: '2021-05-01',
             endDate: '2021-05-31'
           }

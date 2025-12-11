@@ -1,0 +1,10 @@
+{
+  "name": "demand-service",
+  "version": "1.0.0",
+  "description": "Unified demand data service (station query, paging, export)",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
+

@@ -338,19 +338,6 @@ Page({
     });
   },
 
-  goToFavorites() {
-    wx.navigateTo({
-      url: '/pages/favorites/favorites',
-      fail: () => {
-        wx.showModal({
-          title: '功能提示',
-          content: '我的收藏功能开发中，敬请期待！',
-          showCancel: false
-        });
-      }
-    });
-  },
-
   goToTrends() {
     wx.navigateTo({
       url: '/pages/pattern-recognition/pattern-recognition',

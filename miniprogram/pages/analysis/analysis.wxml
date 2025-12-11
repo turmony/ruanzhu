@@ -205,34 +205,6 @@
           </view>
         </view>
 
-        <!-- 需求模式识别 -->
-        <view class="chart-card">
-          <view class="card-header">
-            <view class="header-left">
-              <text class="card-title">🎭 需求模式识别</text>
-              <text class="card-subtitle">站点时间特征分类</text>
-            </view>
-          </view>
-          <view class="pattern-container">
-            <view class="pattern-item" wx:for="{{patternGroups}}" wx:key="id">
-              <view class="pattern-header">
-                <text class="pattern-icon">{{item.icon}}</text>
-                <view class="pattern-info">
-                  <text class="pattern-name">{{item.name}}</text>
-                  <text class="pattern-desc">{{item.description}}</text>
-                </view>
-                <text class="pattern-count">{{item.count}}个</text>
-              </view>
-              <view class="pattern-chart-mini">
-                <ec-canvas id="pattern{{index}}" canvas-id="pattern{{index}}" ec="{{item.chart}}"></ec-canvas>
-              </view>
-              <view class="pattern-stations">
-                <text class="station-tag" wx:for="{{item.examples}}" wx:key="*this" wx:for-item="station">{{station}}</text>
-              </view>
-            </view>
-          </view>
-        </view>
-
         <!-- 联合洞察 -->
         <view class="insight-card">
           <view class="insight-header">

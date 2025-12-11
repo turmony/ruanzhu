@@ -5,7 +5,7 @@ const app = getApp();
 
 const CONFIG = {
   BASIC_DATA_FUNCTION: 'getBasicData',
-  HOURLY_DATA_FUNCTION: 'getHourlyDemands',
+  HOURLY_DATA_FUNCTION: 'demandService',
   USE_MOCK_DATA: false,
   DEBUG_MODE: false
 };

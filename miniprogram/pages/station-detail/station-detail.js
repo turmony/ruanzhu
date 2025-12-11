@@ -51,9 +51,6 @@ Page({
       onInit: null
     },
     
-    // 收藏状态
-    isFavorite: false,
-    
     // 加载状态
     loading: false,
     
@@ -80,8 +77,6 @@ Page({
     // 加载需求数据
     this.loadDemandData();
     
-    // 检查收藏状态
-    this.checkFavoriteStatus();
   },
 
   onShareAppMessage() {
@@ -186,8 +181,9 @@ Page({
   async loadStationInfo() {
     try {
       const res = await wx.cloud.callFunction({
-        name: 'getStationInfo',
+        name: 'stationService',
         data: {
+          action: 'info',
           stationId: this.data.stationInfo.stationId
         }
       });
@@ -208,8 +204,9 @@ Page({
     
     try {
       const res = await wx.cloud.callFunction({
-        name: 'getStationDemand',
+        name: 'demandService',
         data: {
+          action: 'byStation',
           stationId: this.data.stationInfo.stationId,
           startDate: this.data.startDate,
           endDate: this.data.endDate
@@ -646,55 +643,6 @@ Page({
     this.updateChart();
   },
 
-  // 收藏功能
-  async checkFavoriteStatus() {
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'checkFavorite',
-        data: {
-          stationId: this.data.stationInfo.stationId
-        }
-      });
-      
-      this.setData({
-        isFavorite: res.result.isFavorite
-      });
-    } catch (err) {
-      console.error('检查收藏状态失败:', err);
-    }
-  },
-
-  async toggleFavorite() {
-    try {
-      const action = this.data.isFavorite ? 'remove' : 'add';
-      
-      const res = await wx.cloud.callFunction({
-        name: 'toggleFavorite',
-        data: {
-          stationId: this.data.stationInfo.stationId,
-          action: action
-        }
-      });
-      
-      if (res.result.success) {
-        this.setData({
-          isFavorite: !this.data.isFavorite
-        });
-        
-        wx.showToast({
-          title: this.data.isFavorite ? '已收藏' : '已取消',
-          icon: 'success'
-        });
-      }
-    } catch (err) {
-      console.error('收藏操作失败:', err);
-      wx.showToast({
-        title: '操作失败',
-        icon: 'none'
-      });
-    }
-  },
-
   // 导出数据
   async exportData() {
     if (!this.data.demandData || this.data.demandData.length === 0) {
@@ -709,8 +657,9 @@ Page({
     
     try {
       const res = await wx.cloud.callFunction({
-        name: 'exportStationData',
+        name: 'demandService',
         data: {
+          action: 'export',
           stationId: this.data.stationInfo.stationId,
           stationName: this.data.stationInfo.name,
           startDate: this.data.startDate,
