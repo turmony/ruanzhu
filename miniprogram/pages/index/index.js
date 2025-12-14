@@ -291,7 +291,7 @@ Page({
         url: `/pages/station-detail/station-detail?stationId=${stationId}`,
         fail: () => {
           wx.showToast({
-            title: '页面开发中',
+            title: '打开失败，请重试',
             icon: 'none'
           });
         }
@@ -318,7 +318,7 @@ Page({
       fail: () => {
         wx.showModal({
           title: '功能提示',
-          content: '站点排名功能开发中，敬请期待！',
+          content: '打开失败，请重试',
           showCancel: false
         });
       }
@@ -331,7 +331,7 @@ Page({
       fail: () => {
         wx.showModal({
           title: '功能提示',
-          content: '时空分析功能开发中，敬请期待！',
+          content: '打开失败，请重试',
           showCancel: false
         });
       }
@@ -344,7 +344,7 @@ Page({
       fail: () => {
         wx.showModal({
           title: '功能提示',
-          content: '趋势报告功能开发中，敬请期待！',
+          content: '打开失败，请重试',
           showCancel: false
         });
       }

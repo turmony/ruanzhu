@@ -170,13 +170,6 @@
           </view>
         </view>
       </scroll-view>
-      
-      <view class="table-footer">
-        <button class="btn-export" bindtap="exportData">
-          <text class="icon">📥</text>
-          <text>导出数据</text>
-        </button>
-      </view>
     </view>
   </view>
 

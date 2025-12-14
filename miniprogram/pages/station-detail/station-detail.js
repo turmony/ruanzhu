@@ -641,48 +641,5 @@ Page({
     const type = e.currentTarget.dataset.type;
     this.setData({ chartType: type });
     this.updateChart();
-  },
-
-  // 导出数据
-  async exportData() {
-    if (!this.data.demandData || this.data.demandData.length === 0) {
-      wx.showToast({
-        title: '暂无数据可导出',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    wx.showLoading({ title: '生成中...' });
-    
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'demandService',
-        data: {
-          action: 'export',
-          stationId: this.data.stationInfo.stationId,
-          stationName: this.data.stationInfo.name,
-          startDate: this.data.startDate,
-          endDate: this.data.endDate
-        }
-      });
-      
-      if (res.result.success) {
-        wx.showModal({
-          title: '导出成功',
-          content: '数据已生成CSV文件',
-          showCancel: false,
-          confirmText: '我知道了'
-        });
-      }
-    } catch (err) {
-      console.error('导出失败:', err);
-      wx.showToast({
-        title: '导出失败',
-        icon: 'none'
-      });
-    } finally {
-      wx.hideLoading();
-    }
   }
 });

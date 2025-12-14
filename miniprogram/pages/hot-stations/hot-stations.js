@@ -127,7 +127,7 @@ Page({
       url: `/pages/station-detail/station-detail?stationId=${stationId}`,
       fail: () => {
         wx.showToast({
-          title: '页面开发中',
+          title: '打开失败，请重试',
           icon: 'none'
         });
       }
